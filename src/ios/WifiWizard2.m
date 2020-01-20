@@ -51,12 +51,22 @@
 
 	if (@available(iOS 11.0, *)) {
 	    if (ssidString && [ssidString length]) {
-			NEHotspotConfiguration *configuration = [[NEHotspotConfiguration
-				alloc] initWithSSID:ssidString 
-					passphrase:passwordString 
-						isWEP:(BOOL)false];
+            NEHotspotConfiguration *configuration;
+            
+            configuration = [[NEHotspotConfiguration
+                                              alloc] initWithSSID:ssidString
+                                              passphrase:passwordString
+                                              isWEP:(BOOL)false];
 
-			configuration.joinOnce = false;
+
+                      if (@available(iOS 13.0, *)) {
+                          configuration = [[NEHotspotConfiguration
+                                            alloc] initWithSSIDPrefix:ssidString
+                                           passphrase:passwordString
+                                           isWEP:(BOOL)false];
+                      }
+
+                      configuration.joinOnce = false;
             
             [[NEHotspotConfigurationManager sharedManager] applyConfiguration:configuration completionHandler:^(NSError * _Nullable error) {
                 
@@ -64,8 +74,8 @@
                 
                 NSString *ssid = [r objectForKey:(id)kCNNetworkInfoKeySSID]; //@"SSID"
                 
-                if ([ssid isEqualToString:ssidString]){
-                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:ssidString];
+                if ([ssid hasPrefix:ssidString]){
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:ssid];
                 }else{
                     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error.description];
                 }
